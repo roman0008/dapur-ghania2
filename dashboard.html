@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Omzet - Dapur Ghania</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-xl font-bold mb-4">Dashboard Omzet</h1>
+
+<!-- LOGIN -->
+<div id="loginBox" class="mb-4">
+  <input id="pin" type="password" placeholder="PIN Admin"
+   class="border p-2 w-full mb-2">
+  <button onclick="login()"
+   class="w-full bg-[#7A1F1F] text-white py-2 rounded">
+   Login Admin
+  </button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="hidden">
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Total Omzet</div>
+      <div id="totalAll" class="text-xl font-bold">Rp 0</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Omzet Hari Ini</div>
+      <div id="totalToday" class="text-xl font-bold">Rp 0</div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow">
+      <div class="text-sm text-gray-500">Omzet Bulan Ini</div>
+      <div id="totalMonth" class="text-xl font-bold">Rp 0</div>
+    </div>
+  </div>
+
+  <!-- LIST INVOICE -->
+  <h2 class="font-bold mb-2">Invoice PAID</h2>
+  <div id="list"></div>
+
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzLaFtDByFNLGatvIXb8siiAEOQNVEVJ0tIgMOjFy80iRkbDgfikZNbc_KXQfiIe_IYVw/exec"; // GANTI
+const API_KEY = "DAPUR_GHANIA_2026";
+const ADMIN_PIN = "1234"; // SAMA DENGAN ADMIN
+
+function login() {
+  const pin = document.getElementById("pin").value;
+  if (pin !== ADMIN_PIN) {
+    alert("PIN salah");
+    return;
+  }
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("dash").classList.remove("hidden");
+  loadDashboard();
+}
+
+function rupiah(n) {
+  return "Rp " + Number(n).toLocaleString("id-ID");
+}
+
+function loadDashboard() {
+  fetch(`${API_URL}?key=${API_KEY}&action=dashboard`)
+    .then(res => res.json())
+    .then(d => {
+      document.getElementById("totalAll").innerText = rupiah(d.totalAll);
+      document.getElementById("totalToday").innerText = rupiah(d.totalToday);
+      document.getElementById("totalMonth").innerText = rupiah(d.totalMonth);
+
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      if (d.invoices.length === 0) {
+        list.innerHTML = "<p class='text-gray-500'>Belum ada invoice PAID</p>";
+        return;
+      }
+
+      d.invoices.forEach(inv => {
+        list.innerHTML += `
+          <div class="bg-white p-3 rounded shadow mb-2">
+            <b>${inv.invoice_id}</b><br>
+            ${inv.nama} | ${inv.wa}<br>
+            ${rupiah(inv.total)}<br>
+            <span class="text-sm text-gray-500">${inv.tanggal}</span>
+          </div>
+        `;
+      });
+    });
+}
+</script>
+
+</body>
+</html>
