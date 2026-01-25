@@ -1,65 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dapur Ghania</title>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800">
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbzPxIs7wWQluONhvAmAMJMEZRD1JOwJDlsto1aRSpgnNI6WIVCZlG8QCWNvRTYlxeEkFQ/exec";
 let WA="", ROLE="";
 </script>
 
-<h3>Login</h3>
-<input id="wa" placeholder="No HP">
-<input id="pin" placeholder="PIN">
-<button onclick="sendPin()">Kirim PIN</button>
-<button onclick="login()">Login</button>
+<!-- HEADER -->
+<header class="bg-amber-600 text-white p-4 text-center font-bold text-lg">
+  🍰 Dapur Ghania
+</header>
 
-<hr>
+<!-- LOGIN -->
+<section class="p-4">
+  <div class="bg-white rounded-xl shadow p-4 space-y-3">
+    <h2 class="font-bold text-lg">Login</h2>
+    <input id="wa" class="w-full border p-2 rounded" placeholder="No WhatsApp">
+    <input id="pin" class="w-full border p-2 rounded" placeholder="PIN">
+    <div class="flex gap-2">
+      <button onclick="sendPin()" class="flex-1 bg-gray-200 p-2 rounded">Kirim PIN</button>
+      <button onclick="login()" class="flex-1 bg-amber-600 text-white p-2 rounded">Login</button>
+    </div>
+  </div>
+</section>
 
-<div id="app" style="display:none">
+<!-- APP -->
+<section id="app" class="hidden p-4 space-y-6">
 
-<h3>Katalog</h3>
-<div id="products"></div>
+<!-- KATALOG -->
+<div>
+  <h2 class="font-bold text-lg mb-2">Katalog Produk</h2>
+  <div id="products" class="grid grid-cols-2 gap-3"></div>
+</div>
 
-<h3>Keranjang</h3>
-<div id="cart"></div>
-<button onclick="showCheckout()">Checkout</button>
+<!-- CART -->
+<div class="bg-white rounded-xl shadow p-4">
+  <h2 class="font-bold text-lg mb-2">Keranjang</h2>
+  <div id="cart" class="text-sm space-y-1"></div>
+  <button onclick="showCheckout()" class="mt-3 w-full bg-green-600 text-white p-2 rounded">
+    Checkout
+  </button>
+</div>
 
-<div id="checkout" style="display:none">
-  <h3>Checkout</h3>
-  <input id="alamat" placeholder="Alamat"><br>
-  <input type="date" id="tgl"><br>
-  <input type="time" id="jam"><br>
+<!-- CHECKOUT -->
+<div id="checkout" class="hidden bg-white rounded-xl shadow p-4 space-y-2">
+  <h2 class="font-bold text-lg">Checkout</h2>
+  <input id="alamat" class="w-full border p-2 rounded" placeholder="Alamat Pengiriman">
+  <input type="date" id="tgl" class="w-full border p-2 rounded">
+  <input type="time" id="jam" class="w-full border p-2 rounded">
 
-  <select id="kirim">
+  <select id="kirim" class="w-full border p-2 rounded">
     <option>Dikirim</option>
     <option>Ambil Sendiri</option>
-  </select><br>
+  </select>
 
-  <select id="payment">
+  <select id="payment" class="w-full border p-2 rounded">
     <option value="FULL">Full Payment</option>
     <option value="DP">DP 50%</option>
-  </select><br>
+  </select>
 
-  <select id="metode">
+  <select id="metode" class="w-full border p-2 rounded">
     <option>Transfer</option>
     <option>QRIS</option>
-  </select><br>
+  </select>
 
-  <textarea id="catatan" placeholder="Catatan"></textarea><br>
-  <button onclick="checkout()">Buat Invoice</button>
+  <textarea id="catatan" class="w-full border p-2 rounded" placeholder="Catatan (opsional)"></textarea>
+
+  <button onclick="checkout()" class="w-full bg-amber-600 text-white p-2 rounded">
+    Buat Invoice
+  </button>
 </div>
 
-<h3>Invoice Saya</h3>
-<div id="inv"></div>
-
-<h3>Admin</h3>
-<div id="admin"></div>
-
+<!-- INVOICE -->
+<div class="bg-white rounded-xl shadow p-4">
+  <h2 class="font-bold text-lg mb-2">Invoice Saya</h2>
+  <div id="inv" class="text-sm space-y-1"></div>
 </div>
+
+<!-- ADMIN -->
+<div id="adminBox" class="bg-white rounded-xl shadow p-4 hidden">
+  <h2 class="font-bold text-lg mb-2">Admin - UNPAID</h2>
+  <div id="admin" class="text-sm space-y-2"></div>
+</div>
+
+</section>
 
 <script>
 function sendPin(){
@@ -73,7 +107,8 @@ function login(){
   .then(d=>{
     if(!d.success) return alert("Login gagal");
     WA=wa.value; ROLE=d.role;
-    app.style.display="block";
+    app.classList.remove("hidden");
+    if(ROLE==="admin") adminBox.classList.remove("hidden");
     load();
   });
 }
@@ -83,9 +118,18 @@ function load(){
   .then(r=>r.json())
   .then(d=>{
     products.innerHTML=d.map(p=>`
-      <img src="${p[5]}" width="100%"><br>
-      <b>${p[1]}</b> - Rp ${p[2]}<br>
-      <button onclick="add('${p[0]}','${p[1]}',${p[2]})">Tambah</button><hr>
+      <div class="bg-white rounded-xl shadow p-2">
+        <img src="${p[5]}" class="rounded h-32 w-full object-cover">
+        <div class="mt-2 text-sm font-bold">${p[1]}</div>
+        <div class="text-xs text-gray-500">${p[3]}</div>
+        <div class="font-bold text-amber-600 mt-1">
+          Rp ${Number(p[2]).toLocaleString("id-ID")}
+        </div>
+        <button onclick="add('${p[0]}','${p[1]}',${p[2]})"
+          class="mt-2 w-full bg-green-600 text-white text-sm p-1 rounded">
+          + Keranjang
+        </button>
+      </div>
     `).join("");
   });
   loadCart();
@@ -102,12 +146,17 @@ function loadCart(){
   fetch(API+`?action=getCart&wa=${WA}`)
   .then(r=>r.json())
   .then(d=>{
-    cart.innerHTML=d.map(c=>`${c[2]} x ${c[4]} = Rp ${c[3]}`).join("<br>");
+    let total=0;
+    cart.innerHTML=d.map(c=>{
+      total+=c[3]*c[4];
+      return `${c[2]} x ${c[4]} = Rp ${c[3]}`;
+    }).join("<br>");
+    cart.innerHTML+=`<hr><b>Total: Rp ${total.toLocaleString("id-ID")}</b>`;
   });
 }
 
 function showCheckout(){
-  checkout.style.display="block";
+  checkout.classList.remove("hidden");
 }
 
 function checkout(){
@@ -122,14 +171,19 @@ function checkout(){
     catatan:catatan.value
   });
   fetch(API+"?"+q.toString())
-  .then(()=>{alert("Invoice dibuat");checkout.style.display="none";loadInv();});
+  .then(()=>{alert("Invoice berhasil dibuat");checkout.classList.add("hidden");loadInv();});
 }
 
 function loadInv(){
   fetch(API+`?action=myInvoices&wa=${WA}`)
   .then(r=>r.json())
   .then(d=>{
-    inv.innerHTML=d.map(i=>`${i[0]} | ${i[3]} | Rp ${i[2]}`).join("<br>");
+    inv.innerHTML=d.map(i=>`
+      <div class="border-b py-1">
+        <b>${i[0]}</b><br>
+        ${i[3]} | Rp ${Number(i[2]).toLocaleString("id-ID")}
+      </div>
+    `).join("");
   });
 }
 
@@ -138,8 +192,15 @@ function loadAdmin(){
   .then(r=>r.json())
   .then(d=>{
     admin.innerHTML=d.map(i=>`
-      ${i[0]} - ${i[1]} - Rp ${i[2]}
-      <button onclick="paid('${i[0]}')">PAID</button><br>
+      <div class="border p-2 rounded">
+        <b>${i[0]}</b><br>
+        ${i[1]}<br>
+        Rp ${Number(i[2]).toLocaleString("id-ID")}
+        <button onclick="paid('${i[0]}')"
+          class="mt-1 w-full bg-green-600 text-white p-1 rounded">
+          Tandai PAID
+        </button>
+      </div>
     `).join("");
   });
 }
