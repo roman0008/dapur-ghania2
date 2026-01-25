@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Invoice - Dapur Ghania</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-xl font-bold mb-4">Admin Invoice (UNPAID)</h1>
+
+<!-- LOGIN -->
+<div id="loginBox" class="mb-4">
+  <input id="pin" type="password" placeholder="PIN Admin"
+   class="border p-2 w-full mb-2">
+  <button onclick="login()"
+   class="w-full bg-[#7A1F1F] text-white py-2 rounded">
+   Login Admin
+  </button>
+</div>
+
+<!-- DATA -->
+<div id="dataBox" class="hidden"></div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxxxx/exec"; // GANTI
+const API_KEY = "DAPUR_GHANIA_2026";
+const ADMIN_PIN = "1234"; // GANTI PIN
+
+function login() {
+  const pin = document.getElementById("pin").value;
+  if (pin !== ADMIN_PIN) {
+    alert("PIN salah");
+    return;
+  }
+
+  document.getElementById("loginBox").classList.add("hidden");
+  loadData();
+}
+
+function loadData() {
+  fetch(`${API_URL}?key=${API_KEY}&action=list`)
+    .then(res => res.json())
+    .then(data => {
+      const box = document.getElementById("dataBox");
+      box.classList.remove("hidden");
+      box.innerHTML = "";
+
+      if (data.length === 0) {
+        box.innerHTML = "<p>Tidak ada invoice UNPAID</p>";
+        return;
+      }
+
+      data.forEach(inv => {
+        box.innerHTML += `
+          <div class="bg-white p-3 rounded shadow mb-3">
+            <b>${inv.invoice_id}</b><br>
+            ${inv.nama} | ${inv.wa}<br>
+            Rp ${Number(inv.total).toLocaleString()}<br>
+            ${inv.tanggal}
+            <button
+              onclick="markPaid(${inv.row})"
+              class="mt-2 bg-green-600 text-white px-3 py-1 rounded">
+              Tandai PAID
+            </button>
+          </div>
+        `;
+      });
+    });
+}
+
+function markPaid(row) {
+  if (!confirm("Yakin tandai PAID?")) return;
+
+  fetch(`${API_URL}?key=${API_KEY}&action=paid&row=${row}`)
+    .then(() => {
+      alert("Berhasil diubah ke PAID");
+      loadData();
+    });
+}
+</script>
+
+</body>
+</html>
