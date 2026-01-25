@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: Arial; padding: 15px; }
-    input { padding: 8px; width: 100%; margin-bottom: 10px; }
+    input { padding: 10px; width: 100%; margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 8px; border: 1px solid #ddd; }
     button { padding: 6px 10px; cursor: pointer; }
@@ -13,64 +13,83 @@
 </head>
 <body>
 
-<h2>Admin - Invoice UNPAID</h2>
+<h2>Admin – Invoice UNPAID</h2>
 
-<input type="text" id="search" placeholder="Cari Invoice ID...">
+<input 
+  type="text" 
+  id="search" 
+  placeholder="Cari berdasarkan No HP (contoh: 08xxxx)" 
+>
 
 <table id="tbl">
   <tr>
     <th>Invoice</th>
     <th>Nama</th>
+    <th>No HP</th>
     <th>Total</th>
     <th>Aksi</th>
   </tr>
 </table>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwU4p6qvrCzcdqTAU0fYQGSj8Ro2_Vn33oj0ooo0PiFWk5M2ESNtmRJ6rVyWJ8xW1sH/exec";
-let allData = [];
+const API = "PASTE_URL_WEB_APP_DI_SINI";
+let allUnpaid = [];
 
+// Ambil SEMUA invoice UNPAID
 fetch(API + "?action=unpaid")
 .then(res => res.json())
 .then(data => {
-  allData = data;
+  allUnpaid = data;
   render(data);
 });
 
+// Render tabel
 function render(data) {
   let html = `
     <tr>
       <th>Invoice</th>
       <th>Nama</th>
+      <th>No HP</th>
       <th>Total</th>
       <th>Aksi</th>
     </tr>`;
+
   data.forEach(r => {
     html += `
     <tr>
       <td>${r[0]}</td>
       <td>${r[1]}</td>
+      <td>${r[2]}</td>
       <td>Rp ${Number(r[3]).toLocaleString("id-ID")}</td>
       <td>
         <button onclick="paid('${r[0]}')">PAID</button>
       </td>
     </tr>`;
   });
+
   tbl.innerHTML = html;
 }
 
-// 🔍 SEARCH INVOICE
+// 🔍 SEARCH BASED ON NO HP
 search.addEventListener("keyup", () => {
-  const q = search.value.toLowerCase();
-  const filtered = allData.filter(r =>
-    r[0].toLowerCase().includes(q)
+  const q = search.value.trim();
+
+  // Jika kosong → tampilkan SEMUA UNPAID
+  if (q === "") {
+    render(allUnpaid);
+    return;
+  }
+
+  // Filter berdasarkan no HP
+  const filtered = allUnpaid.filter(r =>
+    r[2].includes(q)
   );
   render(filtered);
 });
 
-// UPDATE STATUS
+// Update status jadi PAID
 function paid(inv) {
-  if (!confirm("Ubah status invoice " + inv + " menjadi PAID?")) return;
+  if (!confirm("Ubah invoice " + inv + " menjadi PAID?")) return;
   fetch(API + "?action=update&invoice=" + inv)
     .then(() => location.reload());
 }
