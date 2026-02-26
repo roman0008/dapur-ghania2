@@ -1029,12 +1029,12 @@ function updatePayment(rowId, type, amount) {
   const hashedPin = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 
   injectScript(
-    `${SCRIPT_URL}?action=${phone===ADMIN_WA?'loginAdmin':authMode}`
-    + `&phone=${phone}`
-    + `&pin=${hashedPin}`   // 🔥 kirim HASH bukan pin asli
-    + `&name=${encodeURIComponent(name)}`
-    + `&callback=authCallback`
-  );
+  `${SCRIPT_URL}?action=${authMode === 'login' ? 'login' : 'register'}`
+  + `&phone=${phone}`
+  + `&pin=${hashedPin}`
+  + `&name=${encodeURIComponent(name)}`
+  + `&callback=authCallback`
+);
 }
 
     window.authCallback = (res) => {
