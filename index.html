@@ -460,7 +460,7 @@
     </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQrL46R_pIQ2SpzYsCn_Tcv4egOCkh-acUtqntgEb1n9W6zQ2ylxtZ9j-zIhV6xauNjA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw73fZ2J3OZNLiqUMjpeu_OXAxXTAOR_dcf7be1oafNhtoJy_fYmr5Y-ZIQuHdv5qRo0w/exec";
     const ADMIN_WA = "6285888822270";
     
       let currentUser = JSON.parse(localStorage.getItem('ghania_user')) || null;
@@ -1021,10 +1021,17 @@ function updatePayment(rowId, type, amount) {
 
   showLoader(true, "Authenticating...");
 
+  // 🔐 HASH PIN DULU
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashedPin = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+
   injectScript(
     `${SCRIPT_URL}?action=${phone===ADMIN_WA?'loginAdmin':authMode}`
     + `&phone=${phone}`
-    + `&pin=${pin}`
+    + `&pin=${hashedPin}`   // 🔥 kirim HASH bukan pin asli
     + `&name=${encodeURIComponent(name)}`
     + `&callback=authCallback`
   );
