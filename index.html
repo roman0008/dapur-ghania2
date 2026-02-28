@@ -1326,6 +1326,10 @@ ${renderTermin(o)}
    CART SYSTEM (FULL)
    DAPUR GHANIA
 ========================= */
+/* =========================
+   CART SYSTEM DAPUR GHANIA
+========================= */
+
 const CART_KEY = "DAPUR_GHANIA_CART";
 const AUTO_DISCOUNT_MIN = 1500000;
 const AUTO_DISCOUNT_VALUE = 50000;
@@ -1341,16 +1345,19 @@ function saveCart() {
 }
 
 /* =========================
-   ADD TO CART (FIX ERROR NAME...)
+   ADD TO CART
 ========================= */
 function addToCart(productId) {
   const product = PRODUCTS.find(p => p.id === productId);
-  if (!product) return alert("Produk tidak ditemukan");
+  if (!product) {
+    alert("Produk tidak ditemukan");
+    return;
+  }
 
-  const idx = cart.findIndex(i => i.id === product.id);
+  const index = cart.findIndex(item => item.id === product.id);
 
-  if (idx > -1) {
-    cart[idx].qty += 1;
+  if (index > -1) {
+    cart[index].qty += 1;
   } else {
     cart.push({
       id: product.id,
@@ -1362,34 +1369,38 @@ function addToCart(productId) {
   }
 
   saveCart();
-  showToast("Produk ditambahkan");
+  showToast("Produk ditambahkan ke keranjang");
 }
 
 /* =========================
    REMOVE ITEM
 ========================= */
 function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
+  cart = cart.filter(item => item.id !== id);
   saveCart();
   renderCart();
 }
 
 /* =========================
-   UPDATE QTY
+   CHANGE QTY
 ========================= */
 function changeQty(id, delta) {
   const item = cart.find(i => i.id === id);
   if (!item) return;
 
   item.qty += delta;
-  if (item.qty <= 0) removeFromCart(id);
+
+  if (item.qty <= 0) {
+    removeFromCart(id);
+    return;
+  }
 
   saveCart();
   renderCart();
 }
 
 /* =========================
-   HITUNG TOTAL + AUTO DISKON
+   CALCULATE TOTAL + DISKON
 ========================= */
 function calculateTotal() {
   let total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
@@ -1416,28 +1427,28 @@ function renderCart() {
     return;
   }
 
-  container.innerHTML = cart.map(i => `
+  container.innerHTML = cart.map(item => `
     <div class="flex gap-3 bg-white p-3 rounded-xl border">
-      <img src="${i.image}" class="w-16 h-16 rounded-lg object-cover">
+      <img src="${item.image}" class="w-16 h-16 rounded-lg object-cover">
 
       <div class="flex-1">
-        <p class="text-xs font-black">${i.name}</p>
+        <p class="text-xs font-black">${item.name}</p>
         <p class="text-orange-600 font-bold text-sm">
-          Rp ${i.price.toLocaleString("id-ID")}
+          Rp ${item.price.toLocaleString("id-ID")}
         </p>
 
         <div class="flex items-center gap-2 mt-2">
-          <button onclick="changeQty('${i.id}', -1)"
+          <button onclick="changeQty('${item.id}', -1)"
             class="px-2 bg-gray-100 rounded">-</button>
 
-          <span class="text-sm font-bold">${i.qty}</span>
+          <span class="text-sm font-bold">${item.qty}</span>
 
-          <button onclick="changeQty('${i.id}', 1)"
+          <button onclick="changeQty('${item.id}', 1)"
             class="px-2 bg-gray-100 rounded">+</button>
         </div>
       </div>
 
-      <button onclick="removeFromCart('${i.id}')"
+      <button onclick="removeFromCart('${item.id}')"
         class="text-red-500 text-xs">✕</button>
     </div>
   `).join("");
@@ -1465,9 +1476,15 @@ function openCart() {
     .classList.replace("hidden", "flex");
 }
 
+function closeCart() {
+  document.getElementById("modal-cart")
+    .classList.replace("flex", "hidden");
+}
 
-
-
+/* =========================
+   INIT BADGE ON LOAD
+========================= */
+updateCartBadge();
  /**
  * REMINDER WA H-1 PELUNASAN
  * Sheet: Orders
