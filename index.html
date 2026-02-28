@@ -1328,149 +1328,15 @@ const AUTO_DISCOUNT_VALUE = 50000;
    CART SYSTEM (FULL)
    DAPUR GHANIA
 ========================= */
+
 const CART_KEY = "DAPUR_GHANIA_CART";
-const AUTO_DISCOUNT_MIN = 1500000;
-const AUTO_DISCOUNT_VALUE = 50000;
 
-let cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-
-/* =========================
-   SAVE CART
-========================= */
-function saveCart() {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+/* INIT CART */
+function loadCart() {
+  cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
   updateCartBadge();
 }
-
-/* =========================
-   ADD TO CART (FIX ERROR NAME...)
-========================= */
-function addToCart(productId) {
-  const product = PRODUCTS.find(p => p.id === productId);
-  if (!product) return alert("Produk tidak ditemukan");
-
-  const idx = cart.findIndex(i => i.id === product.id);
-
-  if (idx > -1) {
-    cart[idx].qty += 1;
-  } else {
-    cart.push({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      image: product.image,
-      qty: 1
-    });
-  }
-
-  saveCart();
-  showToast("Produk ditambahkan");
-}
-
-/* =========================
-   REMOVE ITEM
-========================= */
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
-  saveCart();
-  renderCart();
-}
-
-/* =========================
-   UPDATE QTY
-========================= */
-function changeQty(id, delta) {
-  const item = cart.find(i => i.id === id);
-  if (!item) return;
-
-  item.qty += delta;
-  if (item.qty <= 0) removeFromCart(id);
-
-  saveCart();
-  renderCart();
-}
-
-/* =========================
-   HITUNG TOTAL + AUTO DISKON
-========================= */
-function calculateTotal() {
-  let total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-
-  if (total >= AUTO_DISCOUNT_MIN) {
-    total -= AUTO_DISCOUNT_VALUE;
-  }
-
-  return total;
-}
-
-/* =========================
-   RENDER CART
-========================= */
-function renderCart() {
-  const container = document.getElementById("cart-items");
-
-  if (cart.length === 0) {
-    container.innerHTML = `
-      <p class="text-center text-xs text-gray-400 py-10">
-        Keranjang kosong
-      </p>`;
-    document.getElementById("total-val").innerText = "Rp 0";
-    return;
-  }
-
-  container.innerHTML = cart.map(i => `
-    <div class="flex gap-3 bg-white p-3 rounded-xl border">
-      <img src="${i.image}" class="w-16 h-16 rounded-lg object-cover">
-
-      <div class="flex-1">
-        <p class="text-xs font-black">${i.name}</p>
-        <p class="text-orange-600 font-bold text-sm">
-          Rp ${i.price.toLocaleString("id-ID")}
-        </p>
-
-        <div class="flex items-center gap-2 mt-2">
-          <button onclick="changeQty('${i.id}', -1)"
-            class="px-2 bg-gray-100 rounded">-</button>
-
-          <span class="text-sm font-bold">${i.qty}</span>
-
-          <button onclick="changeQty('${i.id}', 1)"
-            class="px-2 bg-gray-100 rounded">+</button>
-        </div>
-      </div>
-
-      <button onclick="removeFromCart('${i.id}')"
-        class="text-red-500 text-xs">✕</button>
-    </div>
-  `).join("");
-
-  const total = calculateTotal();
-
-  document.getElementById("total-val").innerText =
-    "Rp " + total.toLocaleString("id-ID");
-}
-
-/* =========================
-   BADGE
-========================= */
-function updateCartBadge() {
-  const totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
-  document.getElementById("cart-badge").innerText = totalQty;
-}
-
-/* =========================
-   OPEN / CLOSE CART
-========================= */
-function openCart() {
-  renderCart();
-  document.getElementById("modal-cart")
-    .classList.replace("hidden", "flex");
-}
-
-function closeCart() {
-  document.getElementById("modal-cart")
-    .classList.replace("flex", "hidden");
-}
+loadCart();
 
 /* =========================
    ADD TO CART
