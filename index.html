@@ -1768,9 +1768,89 @@ function calculateTotal() {
         document.addEventListener(event, resetAdminTimer);
     });
     
-    // Mulai timer saat halaman admin load
-    resetAdminTimer();
-    
+ /* ================= CART SYSTEM FIX ================= */
+
+function addToCart(id){
+  const product = PRODUCTS.find(p=>p.id===id);
+  if(!product) return;
+
+  const exist = cart.find(i=>i.id===id);
+  if(exist){
+    exist.qty += 1;
+  } else {
+    cart.push({...product, qty:1});
+  }
+
+  updateCartBadge();
+  showToast("Produk ditambahkan");
+}
+
+function updateCartBadge(){
+  document.getElementById("cart-badge").innerText =
+    cart.reduce((a,b)=>a+b.qty,0);
+}
+
+function openCart(){
+  renderCart();
+  document.getElementById("modal-cart")
+    .classList.remove("hidden");
+}
+
+function closeCart(){
+  document.getElementById("modal-cart")
+    .classList.add("hidden");
+}
+
+function renderCart(){
+  const c = document.getElementById("cart-items");
+
+  if(cart.length===0){
+    c.innerHTML =
+      `<p class="text-center text-xs text-gray-400">
+        Keranjang kosong
+      </p>`;
+    document.getElementById("total-val").innerText="Rp 0";
+    return;
+  }
+
+  let total = 0;
+
+  c.innerHTML = cart.map(i=>{
+    const sub = i.price * i.qty;
+    total += sub;
+
+    return `
+    <div class="flex justify-between items-center bg-white p-3 rounded-xl">
+      <div>
+        <p class="text-xs font-bold">${i.name}</p>
+        <p class="text-[10px] text-gray-500">
+          ${i.qty} x Rp ${Number(i.price).toLocaleString("id-ID")}
+        </p>
+      </div>
+      <p class="text-xs font-black text-orange-600">
+        Rp ${sub.toLocaleString("id-ID")}
+      </p>
+    </div>`;
+  }).join("");
+
+  document.getElementById("total-val")
+    .innerText = "Rp " + total.toLocaleString("id-ID");
+}
+
+function handleCheckoutProcess(){
+  if(cart.length===0){
+    alert("Keranjang kosong");
+    return;
+  }
+  closeCart();
+  document.getElementById("modal-checkout")
+    .classList.remove("hidden");
+}
+
+function closeCheckout(){
+  document.getElementById("modal-checkout")
+    .classList.add("hidden");
+}
     </script>
     <div id="modal-product"
      class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 modal-blur">
