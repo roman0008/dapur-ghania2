@@ -1391,7 +1391,8 @@ function calculateTotal() {
         
     async function submitOrder() {
 
-  if (!currentUser) {
+  const token = localStorage.getItem("TOKEN");
+  if (!token) {
     alert("Silakan login dulu");
     return;
   }
@@ -1404,59 +1405,64 @@ function calculateTotal() {
   const tanggal = document.getElementById("f-tgl").value;
   const jam = document.getElementById("f-jam").value;
   const bayar = document.getElementById("f-bayar").value;
-  const pengiriman = document.getElementById("f-pengiriman").value;
   const alamat = document.getElementById("f-alamat").value;
   const catatan = document.getElementById("f-catatan").value;
 
   if (!tanggal) {
-    alert("Tanggal kirim wajib diisi");
+    alert("Tanggal wajib diisi");
     return;
   }
 
-  const totalData = calculateTotal();
+  // 🔥 FORMAT ITEMS MENJADI TEXT UNTUK PDF
+  const itemsText = cart.map(i =>
+    `${i.name} x${i.qty} - Rp ${(i.price * i.qty).toLocaleString("id-ID")}`
+  ).join("\n");
 
-  showLoader(true, "Membuat pesanan...");
+  const subtotal = cart.reduce((sum, i) =>
+    sum + (i.price * i.qty), 0);
 
-  const callbackName = "orderCb_" + Date.now();
+  const formData = new FormData();
 
-  window[callbackName] = function(res) {
-    showLoader(false);
+  formData.append("action", "createOrder");
+  formData.append("token", token);
 
-    if (!res || !res.success) {
-      alert("❌ Gagal membuat order");
+  formData.append("name", localStorage.getItem("USER_NAME"));
+  formData.append("phone", localStorage.getItem("USER_PHONE"));
+
+  formData.append("date", tanggal);
+  formData.append("time", jam);
+
+  formData.append("payment_type", bayar);
+  formData.append("address", alamat);
+  formData.append("note", catatan);
+
+  formData.append("items", itemsText);   // ✅ SESUAI BACKEND
+  formData.append("total", subtotal);    // backend pakai p.total
+
+  try {
+
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await res.json();
+
+    if (result.error) {
+      alert(result.error);
       return;
     }
 
     alert("✅ Order berhasil dibuat");
 
     cart = [];
-    localStorage.removeItem(CART_KEY);
-    updateCartBadge();
-    closeCheckout();
+    localStorage.removeItem("DAPUR_GHANIA_CART");
 
-    fetchUserHistory();
+    window.location.reload();
 
-    delete window[callbackName];
-  };
-
-  const params = new URLSearchParams({
-    action: "createOrder",
-    phone: currentUser.phone,
-    name: currentUser.name,
-    cart: JSON.stringify(cart),
-    subtotal: totalData.subtotal,
-    discount: totalData.discount,
-    total: totalData.finalTotal,
-    payment_type: bayar,
-    delivery_method: pengiriman,
-    alamat: alamat,
-    date: tanggal,
-    time: jam,
-    catatan: catatan,
-    callback: callbackName
-  });
-
-  injectScript(SCRIPT_URL + "?" + params.toString());
+  } catch (err) {
+    alert("Terjadi kesalahan sistem");
+  }
 }
     
     
